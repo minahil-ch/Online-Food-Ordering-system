@@ -188,6 +188,22 @@ LINKEDIN.md      → LinkedIn post caption & hashtags
 
 ---
 
+## Deploy on Vercel (frontend)
+
+1. Import the GitHub repo in [Vercel](https://vercel.com).
+2. **Root Directory:** leave as `.` (repository root), not `client`.
+3. Vercel reads `vercel.json` at the repo root — it builds `shared` then `client`.
+4. Add **Environment Variables** (Project → Settings → Environment Variables):
+
+| Variable | Example |
+|----------|---------|
+| `VITE_API_BASE_URL` | `https://your-backend.onrender.com/api` |
+| `VITE_SOCKET_URL` | `https://your-backend.onrender.com` |
+
+5. Deploy. The API must be hosted separately (Render, Railway, Fly.io, etc.) with `CLIENT_URL` set to your Vercel URL.
+
+If Root Directory is set to `client` only, `client/vercel.json` runs `cd .. && npm install` and builds the shared package first.
+
 ## License
 
 MIT — free to use for learning and portfolio purposes.

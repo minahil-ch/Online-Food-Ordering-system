@@ -94,7 +94,8 @@ api.interceptors.response.use(
 export function getApiError(error: unknown): string {
   if (axios.isAxiosError<ApiResponse>(error)) {
     const data = error.response?.data;
-    if (data?.errors?.length) return data.errors.map((e) => e.message).join(', ');
+    if (data?.errors?.length)
+      return data.errors.map((e: { message: string }) => e.message).join(', ');
     return data?.message ?? error.message;
   }
   return 'An unexpected error occurred';
