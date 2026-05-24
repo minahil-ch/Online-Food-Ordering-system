@@ -33,26 +33,17 @@ export const restaurantApi = {
       }>
     >(`/restaurants/${id}`),
   create: (data: FormData) =>
-    api.post<ApiResponse<IRestaurant>>('/restaurants', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.post<ApiResponse<IRestaurant>>('/restaurants', data),
   update: (id: string, data: FormData) =>
-    api.put<ApiResponse<IRestaurant>>(`/restaurants/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.put<ApiResponse<IRestaurant>>(`/restaurants/${id}`, data),
   delete: (id: string) => api.delete<ApiResponse>(`/restaurants/${id}`),
 };
 
 export const menuApi = {
   listAll: () => api.get<ApiResponse<IMenuItem[]>>('/menu-items'),
-  create: (data: FormData) =>
-    api.post<ApiResponse<IMenuItem>>('/menu-items', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  create: (data: FormData) => api.post<ApiResponse<IMenuItem>>('/menu-items', data),
   update: (id: string, data: FormData) =>
-    api.put<ApiResponse<IMenuItem>>(`/menu-items/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.put<ApiResponse<IMenuItem>>(`/menu-items/${id}`, data),
   delete: (id: string) => api.delete<ApiResponse>(`/menu-items/${id}`),
   toggle: (id: string) => api.patch<ApiResponse<IMenuItem>>(`/menu-items/${id}/toggle`),
   togglePopular: (id: string) => api.patch<ApiResponse<IMenuItem>>(`/menu-items/${id}/popular`),

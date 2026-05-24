@@ -27,6 +27,17 @@ export function parseFormBody(body: Record<string, unknown>): Record<string, unk
     result.rating = Number(result.rating);
   }
 
+  if (result['openingHours.open'] || result['openingHours.close'] || result['openingHours.days']) {
+    result.openingHours = {
+      open: String(result['openingHours.open'] ?? '10:00'),
+      close: String(result['openingHours.close'] ?? '22:00'),
+      days: String(result['openingHours.days'] ?? 'Mon–Sun'),
+    };
+    delete result['openingHours.open'];
+    delete result['openingHours.close'];
+    delete result['openingHours.days'];
+  }
+
   // cuisine[] or comma-separated cuisine string
   if (result.cuisine) {
     if (Array.isArray(result.cuisine)) {

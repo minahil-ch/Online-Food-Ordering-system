@@ -92,16 +92,26 @@ export async function getRestaurantMenu(req: AuthRequest, res: Response): Promis
   sendSuccess(res, grouped);
 }
 
+const DEFAULT_RESTAURANT_IMAGE =
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
+
 export async function createRestaurant(req: AuthRequest, res: Response): Promise<void> {
   const body = parseFormBody(req.body as Record<string, unknown>);
-  let imageUrl = (body.imageUrl as string) ?? '';
+  let imageUrl = (body.imageUrl as string) || DEFAULT_RESTAURANT_IMAGE;
   if (req.file) {
     imageUrl = await uploadImage(req.file.buffer, 'restaurants');
   }
 
   const restaurant = await Restaurant.create({
-    ...body,
+    name: body.name,
+    description: body.description,
     cuisine: (body.cuisine as string[]) ?? [],
+    rating: (body.rating as number) ?? 4.5,
+    isOpen: body.isOpen !== undefined ? Boolean(body.isOpen) : true,
+    deliveryTime: (body.deliveryTime as number) ?? 30,
+    minimumOrder: (body.minimumOrder as number) ?? 10,
+    deliveryFee: (body.deliveryFee as number) ?? 2.99,
+    openingHours: body.openingHours ?? { open: '10:00', close: '22:00', days: 'Mon–Sun' },
     imageUrl,
     ownerId: req.user!.id,
   });
@@ -127,7 +137,16 @@ export async function updateRestaurant(req: AuthRequest, res: Response): Promise
   }
 
   const body = parseFormBody(req.body as Record<string, unknown>);
-  Object.assign(restaurant, body, { imageUrl });
+  if (body.name) restaurant.name = body.name as string;
+  if (body.description) restaurant.description = body.description as string;
+  if (body.cuisine) restaurant.cuisine = body.cuisine as string[];
+  if (body.rating !== undefined) restaurant.rating = body.rating as number;
+  if (body.isOpen !== undefined) restaurant.isOpen = Boolean(body.isOpen);
+  if (body.deliveryTime !== undefined) restaurant.deliveryTime = body.deliveryTime as number;
+  if (body.minimumOrder !== undefined) restaurant.minimumOrder = body.minimumOrder as number;
+  if (body.deliveryFee !== undefined) restaurant.deliveryFee = body.deliveryFee as number;
+  if (body.openingHours) restaurant.openingHours = body.openingHours as typeof restaurant.openingHours;
+  restaurant.imageUrl = imageUrl;
   await restaurant.save();
 
   sendSuccess(res, toJSON(restaurant), 'Restaurant updated');
