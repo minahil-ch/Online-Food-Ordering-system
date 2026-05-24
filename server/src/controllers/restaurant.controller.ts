@@ -97,9 +97,12 @@ const DEFAULT_RESTAURANT_IMAGE =
 
 export async function createRestaurant(req: AuthRequest, res: Response): Promise<void> {
   const body = parseFormBody(req.body as Record<string, unknown>);
-  let imageUrl = (body.imageUrl as string) || DEFAULT_RESTAURANT_IMAGE;
+  let imageUrl =
+    (body.imageUrl as string) || DEFAULT_RESTAURANT_IMAGE;
   if (req.file) {
     imageUrl = await uploadImage(req.file.buffer, 'restaurants');
+  } else if (body.imageUrl && typeof body.imageUrl === 'string') {
+    imageUrl = body.imageUrl;
   }
 
   const restaurant = await Restaurant.create({
@@ -137,6 +140,9 @@ export async function updateRestaurant(req: AuthRequest, res: Response): Promise
   }
 
   const body = parseFormBody(req.body as Record<string, unknown>);
+  if (!req.file && body.imageUrl && typeof body.imageUrl === 'string') {
+    imageUrl = body.imageUrl;
+  }
   if (body.name) restaurant.name = body.name as string;
   if (body.description) restaurant.description = body.description as string;
   if (body.cuisine) restaurant.cuisine = body.cuisine as string[];

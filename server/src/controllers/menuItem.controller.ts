@@ -11,6 +11,8 @@ export async function createMenuItem(req: AuthRequest, res: Response): Promise<v
   let imageUrl = (body.imageUrl as string) ?? '';
   if (req.file) {
     imageUrl = await uploadImage(req.file.buffer, 'menu-items');
+  } else if (!imageUrl) {
+    imageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
   }
 
   const item = await MenuItem.create({
@@ -35,6 +37,9 @@ export async function updateMenuItem(req: AuthRequest, res: Response): Promise<v
   }
 
   const body = parseFormBody(req.body as Record<string, unknown>);
+  if (!req.file && body.imageUrl && typeof body.imageUrl === 'string') {
+    imageUrl = body.imageUrl;
+  }
   Object.assign(item, body, { imageUrl });
   await item.save();
 

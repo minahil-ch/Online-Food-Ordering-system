@@ -10,9 +10,10 @@ export const createMenuItemValidator = [
   body('description').trim().notEmpty().withMessage('Description is required'),
   body('price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
   body('category').trim().notEmpty().withMessage('Category is required'),
-  body('tags').optional().isArray(),
-  body('isAvailable').optional().isBoolean(),
-  body('isPopular').optional().isBoolean(),
+  body('imageUrl').optional().isURL().withMessage('Image URL must be valid'),
+  body('tags').optional(),
+  body('isAvailable').optional(),
+  body('isPopular').optional(),
 ];
 
 export const updateMenuItemValidator = [

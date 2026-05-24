@@ -8,15 +8,18 @@ import { getApiError } from '../../api/axios';
 import { menuItemSchema, type MenuItemForm } from '../../schemas/menuItem';
 import { Modal } from '../../components/ui/Modal';
 import { PageLoader } from '../../components/ui/Spinner';
+import { ImagePicker, type ImageSelection } from '../../components/admin/ImagePicker';
 import { formatCurrency } from '../../utils/format';
 
 export function AdminMenuPage() {
   const [items, setItems] = useState<(IMenuItem & { restaurantName?: string })[]>([]);
   const [restaurants, setRestaurants] = useState<IRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<IMenuItem | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageSelection, setImageSelection] = useState<ImageSelection>({ file: null, url: null });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<MenuItemForm>({
     resolver: zodResolver(menuItemSchema),
@@ -24,13 +27,15 @@ export function AdminMenuPage() {
   });
 
   const load = () => {
-    Promise.all([menuApi.listAll(), restaurantApi.list({ limit: 50 })]).then(
-      ([itemsRes, restRes]) => {
+    setLoading(true);
+    Promise.all([menuApi.listAll(), restaurantApi.list({ limit: 100 })])
+      .then(([itemsRes, restRes]) => {
         if (itemsRes.data.success && itemsRes.data.data)
           setItems(itemsRes.data.data as (IMenuItem & { restaurantName?: string })[]);
         if (restRes.data.success && restRes.data.data) setRestaurants(restRes.data.data);
-      }
-    ).finally(() => setLoading(false));
+      })
+      .catch((err) => toast.error(getApiError(err)))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -40,7 +45,8 @@ export function AdminMenuPage() {
   const openCreate = () => {
     setEditing(null);
     form.reset({ isAvailable: true, isPopular: false });
-    setImageFile(null);
+    setImageSelection({ file: null, url: null });
+    setImagePreview(null);
     setModalOpen(true);
   };
 
@@ -55,8 +61,16 @@ export function AdminMenuPage() {
       isAvailable: item.isAvailable,
       isPopular: item.isPopular,
     });
-    setImageFile(null);
+    setImageSelection({ file: null, url: item.imageUrl });
+    setImagePreview(item.imageUrl);
     setModalOpen(true);
+  };
+
+  const handleImageChange = (selection: ImageSelection) => {
+    setImageSelection(selection);
+    if (selection.file) setImagePreview(URL.createObjectURL(selection.file));
+    else if (selection.url) setImagePreview(selection.url);
+    else setImagePreview(null);
   };
 
   const onSubmit = async (data: MenuItemForm) => {
@@ -64,20 +78,24 @@ export function AdminMenuPage() {
     Object.entries(data).forEach(([k, v]) => {
       if (v !== undefined && v !== null) formData.append(k, String(v));
     });
-    if (imageFile) formData.append('image', imageFile);
+    if (imageSelection.file) formData.append('image', imageSelection.file);
+    else if (imageSelection.url) formData.append('imageUrl', imageSelection.url);
 
+    setSubmitting(true);
     try {
       if (editing) {
         await menuApi.update(editing.id, formData);
-        toast.success('Item updated');
+        toast.success(`"${data.name}" updated`);
       } else {
         await menuApi.create(formData);
-        toast.success('Item created');
+        toast.success(`"${data.name}" added to menu`);
       }
       setModalOpen(false);
       load();
     } catch (err) {
       toast.error(getApiError(err));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -100,11 +118,11 @@ export function AdminMenuPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this item?')) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete "${name}" from the menu?`)) return;
     try {
       await menuApi.delete(id);
-      toast.success('Deleted');
+      toast.success('Item deleted');
       load();
     } catch (err) {
       toast.error(getApiError(err));
@@ -115,10 +133,13 @@ export function AdminMenuPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Menu management</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Menu management</h1>
+          <p className="mt-1 text-sm text-gray-500">Add, edit, or remove menu items across all restaurants.</p>
+        </div>
         <button type="button" className="btn-primary" onClick={openCreate}>
-          Add item
+          + Add menu item
         </button>
       </div>
 
@@ -139,7 +160,7 @@ export function AdminMenuPage() {
               <tr key={item.id} className="border-b border-gray-100 dark:border-gray-800">
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <img src={item.imageUrl} alt="" className="h-10 w-10 rounded object-cover" />
+                    <img src={item.imageUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
                     <div>
                       <p className="font-medium">{item.name}</p>
                       <p className="text-xs text-gray-500">{item.restaurantName}</p>
@@ -168,7 +189,6 @@ export function AdminMenuPage() {
                         ? 'bg-amber-100 text-amber-800 dark:bg-amber-900'
                         : 'bg-gray-100 dark:bg-gray-800'
                     }`}
-                    aria-label="Toggle popular"
                   >
                     {item.isPopular ? '★ Popular' : 'Mark popular'}
                   </button>
@@ -177,7 +197,11 @@ export function AdminMenuPage() {
                   <button type="button" className="text-brand-600 mr-2" onClick={() => openEdit(item)}>
                     Edit
                   </button>
-                  <button type="button" className="text-red-600" onClick={() => handleDelete(item.id)}>
+                  <button
+                    type="button"
+                    className="text-red-600"
+                    onClick={() => handleDelete(item.id, item.name)}
+                  >
                     Delete
                   </button>
                 </td>
@@ -187,32 +211,79 @@ export function AdminMenuPage() {
         </table>
       </div>
 
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit item' : 'Add item'}>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => !submitting && setModalOpen(false)}
+        title={editing ? `Edit: ${editing.name}` : 'Add menu item'}
+      >
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <input {...form.register('name')} placeholder="Name" className="input-field" />
-          <textarea {...form.register('description')} placeholder="Description" className="input-field" rows={2} />
-          <input type="number" step="0.01" {...form.register('price')} placeholder="Price" className="input-field" />
-          <input {...form.register('category')} placeholder="Category" className="input-field" />
-          <select {...form.register('restaurantId')} className="input-field">
-            <option value="">Select restaurant</option>
-            {restaurants.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} />
+          <ImagePicker
+            label="Product image"
+            variant="food"
+            previewUrl={imagePreview}
+            onChange={handleImageChange}
+          />
+
+          <div>
+            <label className="text-sm font-medium">Name *</label>
+            <input {...form.register('name')} className="input-field mt-1" placeholder="Item name" />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Description *</label>
+            <textarea
+              {...form.register('description')}
+              className="input-field mt-1"
+              rows={2}
+              placeholder="Short description"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium">Price ($) *</label>
+              <input
+                type="number"
+                step="0.01"
+                {...form.register('price')}
+                className="input-field mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Category *</label>
+              <input {...form.register('category')} className="input-field mt-1" placeholder="e.g. Pizza" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Restaurant *</label>
+            <select {...form.register('restaurantId')} className="input-field mt-1">
+              <option value="">Select restaurant</option>
+              {restaurants.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <label className="flex items-center gap-2">
             <input type="checkbox" {...form.register('isAvailable')} />
-            Available
+            Available for ordering
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" {...form.register('isPopular')} />
-            Popular
+            Mark as popular / featured
           </label>
-          <button type="submit" className="btn-primary w-full">
-            {editing ? 'Update' : 'Create'}
-          </button>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              className="btn-secondary flex-1"
+              disabled={submitting}
+              onClick={() => setModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary flex-1" disabled={submitting}>
+              {submitting ? 'Saving...' : editing ? 'Save changes' : 'Add item'}
+            </button>
+          </div>
         </form>
       </Modal>
     </div>

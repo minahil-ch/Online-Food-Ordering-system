@@ -9,6 +9,7 @@ import { PageLoader } from '../../components/ui/Spinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { formatCurrency } from '../../utils/format';
 import { formatOpeningHours } from '../../utils/restaurant';
+import { ImagePicker, type ImageSelection } from '../../components/admin/ImagePicker';
 
 interface RestaurantFormState {
   name: string;
@@ -38,7 +39,7 @@ const defaultForm: RestaurantFormState = {
   hoursDays: 'Mon–Sun',
 };
 
-function buildFormData(form: RestaurantFormState, imageFile: File | null): FormData {
+function buildFormData(form: RestaurantFormState, image: ImageSelection): FormData {
   const fd = new FormData();
   fd.append('name', form.name.trim());
   fd.append('description', form.description.trim());
@@ -57,7 +58,8 @@ function buildFormData(form: RestaurantFormState, imageFile: File | null): FormD
     .filter(Boolean)
     .forEach((c) => fd.append('cuisine[]', c));
 
-  if (imageFile) fd.append('image', imageFile);
+  if (image.file) fd.append('image', image.file);
+  else if (image.url) fd.append('imageUrl', image.url);
   return fd;
 }
 
@@ -68,7 +70,7 @@ export function AdminRestaurantsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<IRestaurant | null>(null);
   const [form, setForm] = useState<RestaurantFormState>(defaultForm);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageSelection, setImageSelection] = useState<ImageSelection>({ file: null, url: null });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const load = () => {
@@ -89,7 +91,7 @@ export function AdminRestaurantsPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(defaultForm);
-    setImageFile(null);
+    setImageSelection({ file: null, url: null });
     setImagePreview(null);
     setModalOpen(true);
   };
@@ -109,16 +111,19 @@ export function AdminRestaurantsPage() {
       hoursClose: r.openingHours?.close ?? '22:00',
       hoursDays: r.openingHours?.days ?? 'Mon–Sun',
     });
-    setImageFile(null);
+    setImageSelection({ file: null, url: r.imageUrl });
     setImagePreview(r.imageUrl);
     setModalOpen(true);
   };
 
-  const handleImageChange = (file: File | null) => {
-    setImageFile(file);
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
+  const handleImageChange = (selection: ImageSelection) => {
+    setImageSelection(selection);
+    if (selection.file) {
+      setImagePreview(URL.createObjectURL(selection.file));
+    } else if (selection.url) {
+      setImagePreview(selection.url);
+    } else {
+      setImagePreview(null);
     }
   };
 
@@ -130,7 +135,7 @@ export function AdminRestaurantsPage() {
     }
 
     setSubmitting(true);
-    const formData = buildFormData(form, imageFile);
+    const formData = buildFormData(form, imageSelection);
 
     try {
       if (editing) {
@@ -284,13 +289,12 @@ export function AdminRestaurantsPage() {
         title={editing ? `Edit: ${editing.name}` : 'Add new restaurant'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          {imagePreview && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="h-32 w-full rounded-lg object-cover"
-            />
-          )}
+          <ImagePicker
+            label="Restaurant cover image"
+            variant="restaurant"
+            previewUrl={imagePreview}
+            onChange={handleImageChange}
+          />
 
           <div>
             <label className="text-sm font-medium">Restaurant name *</label>
@@ -335,17 +339,6 @@ export function AdminRestaurantsPage() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Cover image</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="input-field mt-1"
-              onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
-            />
-            <p className="mt-1 text-xs text-gray-500">Optional. JPG or PNG, max 5MB.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
