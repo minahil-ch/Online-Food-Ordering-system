@@ -36,6 +36,10 @@ Only users with `role: "admin"` can access `/admin/*` routes. Customer accounts 
 
 ---
 
+## Role permissions (full guide)
+
+See **[ROLES.md](./ROLES.md)** for a complete breakdown of what Customers and Admins can view, do, and control — including the shared UI (nav, notifications, dark mode, live tracker).
+
 ## System Functionalities
 
 ### Customer (Public & Authenticated)
@@ -48,18 +52,21 @@ Only users with `role: "admin"` can access `/admin/*` routes. Customer accounts 
 | **Cart** | Single-restaurant cart, localStorage persistence, switch-restaurant modal |
 | **Checkout** | Delivery address form, cash/card payment (card is UI demo only) |
 | **Order confirmation** | Animated success screen + **real-time status tracker** (Socket.io) |
-| **My orders** | Order history, detail drawer, live status updates |
-| **Profile** | Edit name, phone, address; change password |
+| **My orders** | Order history, detail drawer, live status updates, **cancel pending orders** |
+| **Profile** | Edit name, phone, address; change password; theme preference |
 | **Auth** | Register, login, auto token refresh, persistent session |
+| **Header cart** | View/adjust cart anytime via dropdown; clear cart |
+| **Notifications** | Real-time order status alerts (bell icon) |
 
 ### Admin Dashboard (`/admin`)
 
 | Section | URL | Capabilities |
 |---------|-----|--------------|
 | **Overview** | `/admin` | Today's orders, revenue, pending count, total users; recent orders table |
-| **Orders** | `/admin/orders` | Filter by status, view details, **update order status** (emits Socket.io to customer) |
-| **Menu** | `/admin/menu` | CRUD menu items, image upload, toggle availability & popular flag |
+| **Orders** | `/admin/orders` | Filter by status, view details, status history, **update order status** (real-time to customer) |
+| **Menu** | `/admin/menu` | CRUD menu items, image upload, toggle availability & **popular** flag |
 | **Restaurants** | `/admin/restaurants` | CRUD restaurants, cuisine, delivery settings, image upload |
+| **Users** | `/admin/users` | List all users, **suspend / reactivate** customer accounts |
 
 ### Backend API
 

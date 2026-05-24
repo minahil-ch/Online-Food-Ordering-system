@@ -10,6 +10,7 @@ import { SwitchRestaurantModal } from '../components/cart/SwitchRestaurantModal'
 import { PageLoader } from '../components/ui/Spinner';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { formatCurrency } from '../utils/format';
+import { formatOpeningHours, formatHoursOnly } from '../utils/restaurant';
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -87,8 +88,11 @@ export function RestaurantDetailPage() {
           <div className="absolute bottom-4 left-4 text-white">
             <h1 className="text-3xl font-bold">{restaurant.name}</h1>
             <p className="mt-1 text-sm opacity-90">
-              ★ {restaurant.rating} • {restaurant.deliveryTime} min •{' '}
-              {formatCurrency(restaurant.deliveryFee)} delivery
+              ★ {restaurant.rating} • {formatOpeningHours(restaurant)}
+            </p>
+            <p className="text-sm opacity-80">
+              {formatHoursOnly(restaurant.openingHours)} • {restaurant.deliveryTime} min delivery •{' '}
+              Min {formatCurrency(restaurant.minimumOrder)} • {formatCurrency(restaurant.deliveryFee)} fee
             </p>
           </div>
         </div>

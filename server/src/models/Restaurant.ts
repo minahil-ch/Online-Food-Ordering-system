@@ -10,6 +10,7 @@ export interface IRestaurantDocument extends Document {
   deliveryTime: number;
   minimumOrder: number;
   deliveryFee: number;
+  openingHours?: { open: string; close: string; days?: string };
   ownerId: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -26,6 +27,11 @@ const restaurantSchema = new Schema<IRestaurantDocument>(
     deliveryTime: { type: Number, default: 30, min: 1 },
     minimumOrder: { type: Number, default: 10, min: 0 },
     deliveryFee: { type: Number, default: 2.99, min: 0 },
+    openingHours: {
+      open: { type: String, default: '10:00' },
+      close: { type: String, default: '22:00' },
+      days: { type: String, default: 'Mon–Sun' },
+    },
     ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }

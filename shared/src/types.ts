@@ -24,8 +24,23 @@ export interface IUser {
   role: UserRole;
   phone?: string;
   address?: Address;
+  isSuspended?: boolean;
+  themePreference?: 'light' | 'dark';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OrderStatusLog {
+  status: OrderStatus;
+  changedAt: string;
+  changedBy?: string;
+  note?: string;
+}
+
+export interface OpeningHours {
+  open: string;
+  close: string;
+  days?: string;
 }
 
 export interface IRestaurant {
@@ -36,6 +51,7 @@ export interface IRestaurant {
   cuisine: string[];
   rating: number;
   isOpen: boolean;
+  openingHours?: OpeningHours;
   deliveryTime: number;
   minimumOrder: number;
   deliveryFee: number;
@@ -80,6 +96,7 @@ export interface IOrder {
   paymentStatus: PaymentStatus;
   createdAt: string;
   updatedAt: string;
+  statusHistory?: OrderStatusLog[];
   restaurant?: Pick<IRestaurant, 'id' | 'name' | 'imageUrl' | 'deliveryTime'>;
   user?: Pick<IUser, 'id' | 'name' | 'email' | 'phone'>;
 }

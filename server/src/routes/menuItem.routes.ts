@@ -47,4 +47,12 @@ router.patch(
   menuItemController.toggleAvailability
 );
 
+router.patch(
+  '/:id/popular',
+  authenticate,
+  requireRole('admin'),
+  validate(menuItemIdParam),
+  menuItemController.togglePopular
+);
+
 export default router;

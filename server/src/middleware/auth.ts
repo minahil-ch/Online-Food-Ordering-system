@@ -35,6 +35,11 @@ export async function authenticate(
       return;
     }
 
+    if (user.isSuspended) {
+      sendError(res, 'Your account has been suspended. Contact support.', 403);
+      return;
+    }
+
     req.user = {
       id: String(user._id),
       role: user.role,

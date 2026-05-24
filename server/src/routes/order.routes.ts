@@ -28,6 +28,13 @@ router.get(
 
 router.get('/my-orders', authenticate, orderController.getMyOrders);
 
+router.patch(
+  '/:id/cancel',
+  authenticate,
+  validate(orderIdParam),
+  orderController.cancelOrder
+);
+
 router.get('/:id', authenticate, validate(orderIdParam), orderController.getOrder);
 
 router.post(

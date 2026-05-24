@@ -7,6 +7,7 @@ const navItems = [
   { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/menu', label: 'Menu' },
   { to: '/admin/restaurants', label: 'Restaurants' },
+  { to: '/admin/users', label: 'Users' },
 ];
 
 function AdminShell() {

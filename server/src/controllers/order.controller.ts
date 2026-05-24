@@ -7,6 +7,7 @@ import { AuthRequest } from '../middleware/auth';
 import { sendSuccess, sendError } from '../utils/apiResponse';
 import { toJSON } from '../utils/serialize';
 import { emitOrderStatusUpdate } from '../services/socket';
+import { appendStatusHistory } from '../utils/orderStatus';
 import type { OrderStatus } from '@food-ordering/shared';
 
 async function enrichOrder(order: IOrderDocument) {
@@ -26,6 +27,11 @@ async function enrichOrder(order: IOrderDocument) {
 }
 
 export async function createOrder(req: AuthRequest, res: Response): Promise<void> {
+  if (req.user!.role === 'admin') {
+    sendError(res, 'Admins cannot place orders. Use a customer account.', 403);
+    return;
+  }
+
   const { restaurantId, items, deliveryAddress, paymentMethod } = req.body;
 
   const restaurant = await Restaurant.findById(restaurantId);
@@ -159,21 +165,62 @@ export async function getOrder(req: AuthRequest, res: Response): Promise<void> {
 
 export async function updateOrderStatus(req: AuthRequest, res: Response): Promise<void> {
   const { status } = req.body as { status: OrderStatus };
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  );
+  const order = await Order.findById(req.params.id);
 
   if (!order) {
     sendError(res, 'Order not found', 404);
     return;
   }
 
-  emitOrderStatusUpdate(String(order._id), status);
+  if (order.status === 'delivered' || order.status === 'cancelled') {
+    sendError(res, 'Cannot update a completed or cancelled order', 400);
+    return;
+  }
+
+  appendStatusHistory(order, status, req.user!.id, `Status updated by admin`);
+  await order.save();
+
+  emitOrderStatusUpdate(String(order._id), status, String(order.userId));
 
   const json = await enrichOrder(order);
   sendSuccess(res, json, 'Order status updated');
+}
+
+export async function cancelOrder(req: AuthRequest, res: Response): Promise<void> {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    sendError(res, 'Order not found', 404);
+    return;
+  }
+
+  const isOwner = String(order.userId) === req.user!.id;
+  const isAdmin = req.user!.role === 'admin';
+
+  if (!isOwner && !isAdmin) {
+    sendError(res, 'Forbidden', 403);
+    return;
+  }
+
+  if (order.status !== 'pending') {
+    sendError(res, 'Only pending orders can be cancelled', 400, [
+      { field: 'status', message: 'Order has already been confirmed or processed' },
+    ]);
+    return;
+  }
+
+  appendStatusHistory(
+    order,
+    'cancelled',
+    req.user!.id,
+    isAdmin ? 'Cancelled by admin' : 'Cancelled by customer'
+  );
+  await order.save();
+
+  emitOrderStatusUpdate(String(order._id), 'cancelled', String(order.userId));
+
+  const json = await enrichOrder(order);
+  sendSuccess(res, json, 'Order cancelled successfully');
 }
 
 export async function listAllOrders(req: AuthRequest, res: Response): Promise<void> {

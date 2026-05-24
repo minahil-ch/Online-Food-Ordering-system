@@ -50,6 +50,19 @@ export async function deleteMenuItem(req: AuthRequest, res: Response): Promise<v
   sendSuccess(res, undefined, 'Menu item deleted');
 }
 
+export async function togglePopular(req: AuthRequest, res: Response): Promise<void> {
+  const item = await MenuItem.findById(req.params.id);
+  if (!item) {
+    sendError(res, 'Menu item not found', 404);
+    return;
+  }
+
+  item.isPopular = !item.isPopular;
+  await item.save();
+
+  sendSuccess(res, toJSON(item), 'Popular flag toggled');
+}
+
 export async function toggleAvailability(req: AuthRequest, res: Response): Promise<void> {
   const item = await MenuItem.findById(req.params.id);
   if (!item) {

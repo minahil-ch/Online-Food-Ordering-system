@@ -90,6 +90,16 @@ export function AdminMenuPage() {
     }
   };
 
+  const handleTogglePopular = async (id: string) => {
+    try {
+      await menuApi.togglePopular(id);
+      toast.success('Popular flag updated');
+      load();
+    } catch (err) {
+      toast.error(getApiError(err));
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this item?')) return;
     try {
@@ -149,7 +159,20 @@ export function AdminMenuPage() {
                     {item.isAvailable ? 'Yes' : 'No'}
                   </button>
                 </td>
-                <td className="p-4">{item.isPopular ? '★' : '—'}</td>
+                <td className="p-4">
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePopular(item.id)}
+                    className={`min-h-touch rounded px-2 py-1 text-xs ${
+                      item.isPopular
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900'
+                        : 'bg-gray-100 dark:bg-gray-800'
+                    }`}
+                    aria-label="Toggle popular"
+                  >
+                    {item.isPopular ? '★ Popular' : 'Mark popular'}
+                  </button>
+                </td>
                 <td className="p-4">
                   <button type="button" className="text-brand-600 mr-2" onClick={() => openEdit(item)}>
                     Edit

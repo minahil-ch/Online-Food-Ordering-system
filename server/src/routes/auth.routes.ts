@@ -27,6 +27,7 @@ router.put(
   validate([
     body('name').optional().trim().isLength({ min: 2 }),
     body('phone').optional().matches(/^\d{10}$/),
+    body('themePreference').optional().isIn(['light', 'dark']),
   ]),
   authController.updateProfile
 );

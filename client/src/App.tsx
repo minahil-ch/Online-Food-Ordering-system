@@ -6,6 +6,7 @@ import { Layout } from './components/layout/Layout';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
+import { useGlobalNotifications } from './hooks/useGlobalNotifications';
 import { PageLoader } from './components/ui/Spinner';
 import { HomePage } from './pages/HomePage';
 import { RestaurantsPage } from './pages/RestaurantsPage';
@@ -20,12 +21,15 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminMenuPage } from './pages/admin/AdminMenuPage';
 import { AdminRestaurantsPage } from './pages/admin/AdminRestaurantsPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
   const location = useLocation();
   const { fetchMe, isLoading } = useAuthStore();
   const isDark = useThemeStore((s) => s.isDark);
+
+  useGlobalNotifications();
 
   useEffect(() => {
     fetchMe();
@@ -63,6 +67,7 @@ export default function App() {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="menu" element={<AdminMenuPage />} />
           <Route path="restaurants" element={<AdminRestaurantsPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

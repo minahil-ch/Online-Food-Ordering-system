@@ -13,6 +13,8 @@ export interface IUserDocument extends Document {
     zipCode: string;
   };
   refreshToken?: string | null;
+  isSuspended: boolean;
+  themePreference?: 'light' | 'dark';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +47,8 @@ const userSchema = new Schema<IUserDocument>(
     phone: { type: String, trim: true },
     address: addressSchema,
     refreshToken: { type: String, select: false, default: null },
+    isSuspended: { type: Boolean, default: false },
+    themePreference: { type: String, enum: ['light', 'dark'], default: 'light' },
   },
   { timestamps: true }
 );

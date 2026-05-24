@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { IUser } from '@food-ordering/shared';
 import { api } from '../api/axios';
 import { authApi } from '../api';
+import { useThemeStore } from './themeStore';
 
 interface AuthState {
   user: IUser | null;
@@ -25,8 +26,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
 
-  login: (accessToken, user) =>
-    set({ accessToken, user, isAuthenticated: true, isLoading: false }),
+  login: (accessToken, user) => {
+    useThemeStore.getState().applyUserPreference(user.themePreference);
+    set({ accessToken, user, isAuthenticated: true, isLoading: false });
+  },
 
   logout: () => {
     authApi.logout().catch(() => {});
@@ -55,6 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const { data } = await authApi.me();
       if (data.success && data.data) {
+        useThemeStore.getState().applyUserPreference(data.data.themePreference);
         set({ user: data.data, isAuthenticated: true, isLoading: false });
       } else {
         set({ isLoading: false, isAuthenticated: false });

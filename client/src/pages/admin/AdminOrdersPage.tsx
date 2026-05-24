@@ -6,6 +6,8 @@ import { orderApi } from '../../api';
 import { getApiError } from '../../api/axios';
 import { formatCurrency, formatDate, formatStatus } from '../../utils/format';
 import { PageLoader } from '../../components/ui/Spinner';
+import { OrderStatusHistory } from '../../components/order/OrderStatusHistory';
+import { OrderStatusTracker } from '../../components/order/OrderStatusTracker';
 
 export function AdminOrdersPage() {
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -33,13 +35,20 @@ export function AdminOrdersPage() {
     try {
       const { data } = await orderApi.updateStatus(id, status);
       if (data.success && data.data) {
-        setOrders((prev) => prev.map((o) => (o.id === id ? (data.data as IOrder) : o)));
-        if (selected?.id === id) setSelected(data.data as IOrder);
-        toast.success('Status updated');
+        const updated = data.data as IOrder;
+        setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
+        if (selected?.id === id) setSelected(updated);
+        toast.success('Status updated — customer notified in real time');
       }
     } catch (err) {
       toast.error(getApiError(err));
     }
+  };
+
+  const openOrder = async (order: IOrder) => {
+    setSelected(order);
+    const { data } = await orderApi.get(order.id);
+    if (data.success && data.data) setSelected(data.data as IOrder);
   };
 
   if (loading && orders.length === 0) return <PageLoader />;
@@ -77,7 +86,7 @@ export function AdminOrdersPage() {
               <tr
                 key={order.id}
                 className="cursor-pointer border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
-                onClick={() => setSelected(order)}
+                onClick={() => openOrder(order)}
               >
                 <td className="p-4">#{order.id.slice(-6)}</td>
                 <td className="p-4">{formatDate(order.createdAt)}</td>
@@ -97,6 +106,15 @@ export function AdminOrdersPage() {
               ← Close
             </button>
             <h2 className="text-xl font-bold">Order #{selected.id.slice(-6)}</h2>
+            {(selected.user as { name?: string; email?: string }) && (
+              <p className="text-sm text-gray-500">
+                Customer: {(selected.user as { name?: string }).name} ·{' '}
+                {(selected.user as { email?: string }).email}
+              </p>
+            )}
+            <div className="mt-4">
+              <OrderStatusTracker status={selected.status} />
+            </div>
             <ul className="mt-4 space-y-2">
               {selected.items.map((item) => (
                 <li key={item.menuItemId} className="text-sm">
@@ -105,6 +123,7 @@ export function AdminOrdersPage() {
               ))}
             </ul>
             <p className="mt-4 font-semibold">Total: {formatCurrency(selected.total)}</p>
+            <OrderStatusHistory history={selected.statusHistory} />
             <label className="mt-4 block text-sm font-medium">Update status</label>
             <select
               value={selected.status}

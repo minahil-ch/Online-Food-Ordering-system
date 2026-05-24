@@ -8,6 +8,13 @@ export interface IOrderItemEmbedded {
   quantity: number;
 }
 
+export interface IStatusHistoryEntry {
+  status: OrderStatus;
+  changedAt: Date;
+  changedBy?: Types.ObjectId;
+  note?: string;
+}
+
 export interface IOrderDocument extends Document {
   userId: Types.ObjectId;
   restaurantId: Types.ObjectId;
@@ -23,6 +30,7 @@ export interface IOrderDocument extends Document {
   };
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  statusHistory: IStatusHistoryEntry[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,9 +70,29 @@ const orderSchema = new Schema<IOrderDocument>(
     deliveryAddress: { type: addressSchema, required: true },
     paymentMethod: { type: String, enum: ['cash', 'card'], required: true },
     paymentStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+    statusHistory: {
+      type: [
+        {
+          status: { type: String, required: true },
+          changedAt: { type: Date, default: Date.now },
+          changedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+          note: { type: String },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );
+
+orderSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.statusHistory = [
+      { status: this.status, changedAt: new Date(), note: 'Order placed' },
+    ];
+  }
+  next();
+});
 
 orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ restaurantId: 1, status: 1 });

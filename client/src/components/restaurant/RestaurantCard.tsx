@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { IRestaurant } from '@food-ordering/shared';
 import { formatCurrency } from '../../utils/format';
+import { formatOpeningHours } from '../../utils/restaurant';
 
 interface RestaurantCardProps {
   restaurant: IRestaurant;
@@ -43,12 +44,13 @@ export function RestaurantCard({ restaurant, index = 0 }: RestaurantCardProps) {
             {restaurant.description}
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-            <span>{restaurant.deliveryTime} min</span>
+            <span>{formatOpeningHours(restaurant)}</span>
             <span>•</span>
-            <span>{formatCurrency(restaurant.deliveryFee)} delivery</span>
+            <span>{restaurant.deliveryTime} min delivery</span>
             <span>•</span>
-            <span>{restaurant.cuisine.slice(0, 2).join(', ')}</span>
+            <span>{formatCurrency(restaurant.deliveryFee)} fee</span>
           </div>
+          <p className="mt-1 text-xs text-gray-400">{restaurant.cuisine.join(' · ')}</p>
         </div>
       </Link>
     </motion.div>

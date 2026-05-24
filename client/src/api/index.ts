@@ -55,6 +55,7 @@ export const menuApi = {
     }),
   delete: (id: string) => api.delete<ApiResponse>(`/menu-items/${id}`),
   toggle: (id: string) => api.patch<ApiResponse<IMenuItem>>(`/menu-items/${id}/toggle`),
+  togglePopular: (id: string) => api.patch<ApiResponse<IMenuItem>>(`/menu-items/${id}/popular`),
 };
 
 export const orderApi = {
@@ -66,6 +67,7 @@ export const orderApi = {
     api.get<ApiResponse<IOrder[]>>('/orders', { params }),
   updateStatus: (id: string, status: string) =>
     api.patch<ApiResponse<IOrder>>(`/orders/${id}/status`, { status }),
+  cancel: (id: string) => api.patch<ApiResponse<IOrder>>(`/orders/${id}/cancel`),
   dashboardStats: () =>
     api.get<
       ApiResponse<{
@@ -80,4 +82,6 @@ export const orderApi = {
 export const userApi = {
   list: () => api.get<ApiResponse<IUser[]>>('/users'),
   get: (id: string) => api.get<ApiResponse<IUser>>(`/users/${id}`),
+  updateStatus: (id: string, isSuspended: boolean) =>
+    api.patch<ApiResponse<IUser>>(`/users/${id}/status`, { isSuspended }),
 };

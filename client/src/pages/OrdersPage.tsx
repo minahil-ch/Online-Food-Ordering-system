@@ -7,6 +7,9 @@ import { useOrderSocket } from '../hooks/useOrderSocket';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageLoader } from '../components/ui/Spinner';
+import { OrderStatusTracker } from '../components/order/OrderStatusTracker';
+import { OrderStatusHistory } from '../components/order/OrderStatusHistory';
+import { CancelOrderButton } from '../components/order/CancelOrderButton';
 import { formatCurrency, formatDate, formatStatus } from '../utils/format';
 
 function OrdersContent() {
@@ -24,13 +27,26 @@ function OrdersContent() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleStatusUpdate = useCallback((status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === selectedId ? { ...o, status } : o))
-    );
-    setSelectedOrder((prev) => (prev ? { ...prev, status } : prev));
-    toast.success(`Order updated: ${formatStatus(status)}`);
-  }, [selectedId]);
+  const handleStatusUpdate = useCallback(
+    async (status: OrderStatus) => {
+      if (!selectedId) return;
+      const { data } = await orderApi.get(selectedId);
+      if (data.success && data.data) {
+        const updated = data.data as IOrder;
+        setSelectedOrder(updated);
+        setOrders((prev) => prev.map((o) => (o.id === selectedId ? updated : o)));
+      }
+      if (status !== 'cancelled') {
+        toast.success(`Order updated: ${formatStatus(status)}`);
+      }
+    },
+    [selectedId]
+  );
+
+  const handleOrderCancelled = (updated: IOrder) => {
+    setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    setSelectedOrder(updated);
+  };
 
   useOrderSocket(selectedId ?? undefined, handleStatusUpdate);
 
@@ -106,9 +122,9 @@ function OrdersContent() {
             </button>
             <h2 className="text-xl font-bold">Order details</h2>
             <p className="text-sm text-gray-500">#{selectedOrder.id.slice(-8)}</p>
-            <p className="mt-2">
-              Status: <strong>{formatStatus(selectedOrder.status)}</strong>
-            </p>
+            <div className="mt-4">
+              <OrderStatusTracker status={selectedOrder.status} />
+            </div>
             <ul className="mt-4 space-y-2">
               {selectedOrder.items.map((item) => (
                 <li key={item.menuItemId} className="flex justify-between text-sm">
@@ -120,12 +136,20 @@ function OrdersContent() {
               ))}
             </ul>
             <p className="mt-4 font-semibold">Total: {formatCurrency(selectedOrder.total)}</p>
-            <Link
-              to={`/order-confirmation/${selectedOrder.id}`}
-              className="btn-primary mt-4 block text-center"
-            >
-              Track order
-            </Link>
+            <OrderStatusHistory history={selectedOrder.statusHistory} />
+            <div className="mt-4 flex flex-col gap-2">
+              <CancelOrderButton
+                order={selectedOrder}
+                onCancelled={handleOrderCancelled}
+                className="w-full"
+              />
+              <Link
+                to={`/order-confirmation/${selectedOrder.id}`}
+                className="btn-primary block text-center"
+              >
+                Full tracking page
+              </Link>
+            </div>
           </aside>
         </div>
       )}
@@ -135,7 +159,7 @@ function OrdersContent() {
 
 export function OrdersPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute roles={['customer']}>
       <OrdersContent />
     </ProtectedRoute>
   );

@@ -6,6 +6,8 @@ import type { IOrder, OrderStatus } from '@food-ordering/shared';
 import { orderApi } from '../api';
 import { useOrderSocket } from '../hooks/useOrderSocket';
 import { OrderStatusTracker } from '../components/order/OrderStatusTracker';
+import { OrderStatusHistory } from '../components/order/OrderStatusHistory';
+import { CancelOrderButton } from '../components/order/CancelOrderButton';
 import { PageLoader } from '../components/ui/Spinner';
 import { formatCurrency, formatStatus } from '../utils/format';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
@@ -61,8 +63,14 @@ function ConfirmationContent() {
       </p>
 
       <div className="card mt-8 p-6">
-        <h2 className="mb-4 font-semibold">Order status</h2>
+        <h2 className="mb-4 font-semibold">Live order tracker</h2>
         <OrderStatusTracker status={order.status} />
+        <OrderStatusHistory history={order.statusHistory} />
+        <CancelOrderButton
+          order={order}
+          onCancelled={setOrder}
+          className="mt-4 w-full"
+        />
       </div>
 
       <div className="card mt-6 p-6">
@@ -99,7 +107,7 @@ function ConfirmationContent() {
 
 export function OrderConfirmationPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute roles={['customer']}>
       <ConfirmationContent />
     </ProtectedRoute>
   );

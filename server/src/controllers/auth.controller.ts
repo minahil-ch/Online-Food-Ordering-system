@@ -71,6 +71,11 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
+  if (user.isSuspended) {
+    sendError(res, 'Your account has been suspended. Contact support.', 403);
+    return;
+  }
+
   const payload = { userId: String(user._id), role: user.role };
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
@@ -139,10 +144,15 @@ export async function me(req: AuthRequest, res: Response): Promise<void> {
 }
 
 export async function updateProfile(req: AuthRequest, res: Response): Promise<void> {
-  const { name, phone, address } = req.body;
+  const { name, phone, address, themePreference } = req.body;
   const user = await User.findByIdAndUpdate(
     req.user!.id,
-    { ...(name && { name }), ...(phone && { phone }), ...(address && { address }) },
+    {
+      ...(name && { name }),
+      ...(phone && { phone }),
+      ...(address && { address }),
+      ...(themePreference && { themePreference }),
+    },
     { new: true, runValidators: true }
   );
   if (!user) {

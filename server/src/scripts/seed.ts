@@ -160,6 +160,7 @@ async function seed(): Promise<void> {
       ...restaurantFields,
       ownerId: admin._id,
       isOpen: true,
+      openingHours: { open: '10:00', close: '22:00', days: 'Mon–Sun' },
     });
     restaurantIds.push(restaurant._id);
 
