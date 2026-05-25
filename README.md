@@ -188,21 +188,22 @@ LINKEDIN.md      → LinkedIn post caption & hashtags
 
 ---
 
-## Deploy on Vercel (frontend)
+## Deploy to production
 
-1. Import the GitHub repo in [Vercel](https://vercel.com).
-2. **Root Directory:** leave as `.` (repository root), not `client`.
-3. Vercel reads `vercel.json` at the repo root — it builds `shared` then `client`.
-4. Add **Environment Variables** (Project → Settings → Environment Variables):
+**Full guide:** [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-| Variable | Example |
-|----------|---------|
-| `VITE_API_BASE_URL` | `https://your-backend.onrender.com/api` |
-| `VITE_SOCKET_URL` | `https://your-backend.onrender.com` |
+Quick summary:
 
-5. Deploy. The API must be hosted separately (Render, Railway, Fly.io, etc.) with `CLIENT_URL` set to your Vercel URL.
+1. **MongoDB Atlas** → get `MONGODB_URI`
+2. **Render** → deploy API from `render.yaml` (auto-seeds dummy data)
+3. **Vercel** → set `BACKEND_URL`, `VITE_API_BASE_URL=/api`, redeploy
 
-If Root Directory is set to `client` only, `client/vercel.json` runs `cd .. && npm install` and builds the shared package first.
+| Login | Email | Password |
+|-------|-------|----------|
+| Admin | admin@food.com | Admin@1234 |
+| Customer | user@food.com | User@1234 |
+
+Without a live API backend, login returns **405** and restaurants stay empty.
 
 ## License
 

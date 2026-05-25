@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type { OrderStatus } from '@food-ordering/shared';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
+import { SOCKET_URL } from '../config/api';
 
 export function useOrderSocket(
   orderId: string | undefined,

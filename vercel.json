@@ -1,8 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
-  "buildCommand": "npm run build -w @food-ordering/shared && npm run build -w @food-ordering/client",
+  "buildCommand": "node scripts/generate-vercel-config.cjs && npm run build -w @food-ordering/shared && npm run build -w @food-ordering/client",
   "outputDirectory": "client/dist",
   "framework": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://online-food-ordering-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

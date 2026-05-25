@@ -1,0 +1,33 @@
+# Deploy API on Render: https://dashboard.render.com → New → Blueprint → connect repo
+services:
+  - type: web
+    name: online-food-ordering-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build -w @food-ordering/shared && npm run build -w @food-ordering/server
+    startCommand: npm run start -w @food-ordering/server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTO_SEED
+        value: 'true'
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
+      - key: CLIENT_URL
+        value: https://online-food-ordering-system-client.vercel.app
+      - key: CLOUDINARY_CLOUD_NAME
+        value: ''
+      - key: CLOUDINARY_API_KEY
+        value: ''
+      - key: CLOUDINARY_API_SECRET
+        value: ''

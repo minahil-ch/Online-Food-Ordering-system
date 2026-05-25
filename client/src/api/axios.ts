@@ -9,7 +9,9 @@ import toast from 'react-hot-toast';
 import type { ApiResponse } from '@food-ordering/shared';
 import { useAuthStore } from '../store/authStore';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
+import { API_BASE_URL } from '../config/api';
+
+const API_BASE = API_BASE_URL;
 
 export const api = axios.create({
   baseURL: API_BASE,

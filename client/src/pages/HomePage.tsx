@@ -23,6 +23,9 @@ export function HomePage() {
       .then(({ data }) => {
         if (data.success && data.data) setRestaurants(data.data);
       })
+      .catch(() => {
+        setRestaurants([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

@@ -25,4 +25,28 @@ export const env = {
   },
   clientUrl: process.env.CLIENT_URL ?? 'http://localhost:5173',
   isProduction: process.env.NODE_ENV === 'production',
+  autoSeed: process.env.AUTO_SEED === 'true',
 };
+
+/** CORS: allow local dev + any Vercel preview/production URL */
+export function getCorsOrigin():
+  | string
+  | string[]
+  | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void) {
+  const staticOrigins = [env.clientUrl, 'http://localhost:5173'];
+  return (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    if (staticOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(null, false);
+  };
+}

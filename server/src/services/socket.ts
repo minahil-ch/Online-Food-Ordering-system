@@ -8,7 +8,13 @@ let io: Server | null = null;
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: env.clientUrl,
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (origin === env.clientUrl || /^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+          return cb(null, true);
+        }
+        cb(null, false);
+      },
       credentials: true,
     },
   });

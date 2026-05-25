@@ -4,7 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import { env } from './config/env';
+import { env, getCorsOrigin } from './config/env';
+import { autoSeedIfEmpty } from './utils/autoSeed';
 import { initSocket } from './services/socket';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
@@ -22,7 +23,7 @@ initSocket(server);
 app.use(helmet());
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin: getCorsOrigin(),
     credentials: true,
   })
 );
@@ -47,6 +48,8 @@ async function start(): Promise<void> {
   try {
     await mongoose.connect(env.mongodbUri);
     console.log('Connected to MongoDB');
+
+    await autoSeedIfEmpty();
 
     server.listen(env.port, () => {
       console.log(`Server running on port ${env.port}`);

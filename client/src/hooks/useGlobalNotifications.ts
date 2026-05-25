@@ -6,7 +6,7 @@ import { formatStatus } from '../utils/format';
 import type { OrderStatus } from '@food-ordering/shared';
 import toast from 'react-hot-toast';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
+import { SOCKET_URL } from '../config/api';
 
 /** Listen for order status updates for the logged-in customer */
 export function useGlobalNotifications(): void {
