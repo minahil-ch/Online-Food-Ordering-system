@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://4b447de25ed20f.lhr.life/api/:path*"
+      "destination": "https://72921254918baa.lhr.life/api/:path*"
     },
     {
       "source": "/(.*)",
