@@ -14,6 +14,7 @@
     "start": "npm run start -w server",
     "seed": "npm run seed -w server",
     "check-deploy": "powershell -File scripts/check-deployment.ps1",
+    "public-api": "powershell -File scripts/start-public-api.ps1",
     "lint": "npm run lint -w server && npm run lint -w client",
     "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client"
   },

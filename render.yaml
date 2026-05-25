@@ -1,12 +1,11 @@
-# Deploy API on Render: https://dashboard.render.com → New → Blueprint → connect repo
+# Render Blueprint: API + MongoDB in one Docker service (no Atlas required)
 services:
   - type: web
     name: online-food-ordering-api
-    runtime: node
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     region: oregon
     plan: free
-    buildCommand: npm install && npm run build -w @food-ordering/shared && npm run build -w @food-ordering/server
-    startCommand: npm run start -w @food-ordering/server
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -14,7 +13,7 @@ services:
       - key: AUTO_SEED
         value: 'true'
       - key: MONGODB_URI
-        sync: false
+        value: mongodb://127.0.0.1:27017/food-ordering
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

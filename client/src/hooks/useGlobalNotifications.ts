@@ -14,7 +14,7 @@ export function useGlobalNotifications(): void {
   const add = useNotificationStore((s) => s.add);
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role === 'admin') return;
+    if (!isAuthenticated || user?.role === 'admin' || !SOCKET_URL) return;
 
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
 

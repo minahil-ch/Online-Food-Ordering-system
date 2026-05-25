@@ -38,6 +38,11 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  const base = config.baseURL ?? API_BASE;
+  if (typeof base === 'string' && (base.includes('loca.lt') || base.includes('trycloudflare.com'))) {
+    config.headers = config.headers ?? {};
+    config.headers['bypass-tunnel-reminder'] = 'true';
+  }
   return config;
 });
 

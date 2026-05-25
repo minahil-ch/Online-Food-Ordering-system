@@ -11,7 +11,7 @@ export function useOrderSocket(
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !SOCKET_URL) return;
 
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
     socketRef.current = socket;
