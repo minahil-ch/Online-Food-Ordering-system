@@ -1,7 +1,12 @@
 # Production deployment (Vercel + Render + MongoDB Atlas)
 
 Your live site needs **two** services: frontend (Vercel) and API (Render).  
-The **405 login error** happens when the frontend calls `/api` on Vercel only (no backend).
+
+**Current production issue (May 2026):** `https://online-food-ordering-api.onrender.com` returns **404 / no-server** — the API was never deployed on Render. Until Render is live, Vercel will show no restaurants and login will fail (405 or network error).
+
+Run `powershell -File scripts/check-deployment.ps1` after each deploy to verify both services.
+
+The **405 login error** also happens when Vercel only serves the SPA (no `/api` proxy to Render). This repo fixes that via `client/vercel.json` rewrites and direct `VITE_API_BASE_URL` to Render.
 
 ## Step 1 — MongoDB Atlas (free)
 

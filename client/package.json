@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "cd ../shared && npm run build",
+    "prebuild": "cd .. && node scripts/generate-vercel-config.cjs && npm run build -w @food-ordering/shared",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
